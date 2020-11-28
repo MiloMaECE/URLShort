@@ -60,7 +60,7 @@ class User(db.Model):
     def generate_auth_token(self, expires_in=600):
         return jwt.encode(
             {"id": self.id, "exp": time.time() + expires_in},
-            app.config["SECRET_KEY"],
+            SECRET_KEY,
             algorithm="HS256",
         )
 
@@ -93,10 +93,11 @@ except:
     db.create_all()
     time.sleep(1)
 
+## Add Default User
 userquery = User.query.filter_by(username=DEFAULT_USER).first()
 if userquery is None:
-    user = User(username="gamehive")
-    user.hash_password("gamehive")
+    user = User(username=DEFAULT_USER)
+    user.hash_password(DEFAULT_PASSWORD)
     db.session.add(user)
     db.session.commit()
 
@@ -126,7 +127,7 @@ def resetdb_command():
     print("Creating tables.")
     db.create_all()
 
-    user = User(username="gamehive")
+    user = User(username=DEFAULT_USER)
     user.hash_password("gamehive")
     db.session.add(user)
     db.session.commit()
