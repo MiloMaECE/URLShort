@@ -1,0 +1,20 @@
+version: "3"
+services:
+    appserver:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - "./src:/src"
+        links:
+            - "postgres"
+        ports:
+            - 5000:5000
+
+    postgres:
+        image: "library/postgres:9.6"
+        environment:
+            POSTGRES_USER: "gamehive"
+            POSTGRES_PASSWORD: "gamehive"
+        expose:
+            - "5432"
