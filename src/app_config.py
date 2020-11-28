@@ -1,7 +1,7 @@
 DEFAULT_USER = "gamehive"
 DEFAULT_PASSWORD = "gamehive"
 
-DB_URL = "postgresql://gamehive:gamehive@postgres:5432/gamehive"
+DB_URL = "postgresql://gamehive:gamehive@postgres:5432/gamehive1"
 PORT_NUMBER = 5000
 HOST = "0.0.0.0"
 DEBUG = True
@@ -27,6 +27,7 @@ Swagger_Template = {
     "securityDefinitions": {"BasicAuth": {"type": "basic",}},
 }
 
+
 def GetConfig():
     APP_CONFIG = {}
 
@@ -42,5 +43,5 @@ def GetConfig():
     APP_CONFIG["SHORT_ID_LENGTH"] = SHORT_ID_LENGTH
     APP_CONFIG["DEFAULT_USER"] = DEFAULT_USER
     APP_CONFIG["DEFAULT_PASSWORD"] = DEFAULT_PASSWORD
-    
+
     return APP_CONFIG

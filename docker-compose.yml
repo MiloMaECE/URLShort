@@ -1,15 +1,19 @@
-version: "3"
+version: "3.8"
 services:
+
     appserver:
         build:
             context: .
             dockerfile: Dockerfile
         volumes:
             - "./src:/src"
-        links:
-            - "postgres"
+        depends_on:
+            - postgres
         ports:
             - 5000:5000
+        deploy:
+            restart_policy:
+                condition: on-failure
 
     postgres:
         image: "library/postgres:9.6"
@@ -18,3 +22,6 @@ services:
             POSTGRES_PASSWORD: "gamehive"
         expose:
             - "5432"
+        deploy:
+            restart_policy:
+                condition: on-failure

@@ -11,8 +11,9 @@ import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_utils import database_exists, create_database, drop_database
 from flasgger import Swagger
-from app_config import APP_CONFIG
+from app_config import GetConfig
 
+APP_CONFIG = GetConfig()
 DEFAULT_USER = APP_CONFIG["DEFAULT_USER"]
 DEFAULT_PASSWORD = APP_CONFIG["DEFAULT_PASSWORD"]
 DB_URL = APP_CONFIG["DB_URL"]
@@ -38,8 +39,8 @@ class ServerConfig(object):
 
 app = Flask(__name__)
 app.config.from_object(ServerConfig)
-swagger = Swagger(app, template=Swagger_Template)
 db = SQLAlchemy(app)
+swagger = Swagger(app, template=Swagger_Template)
 auth = HTTPBasicAuth()
 
 ## DataBase Model Design
@@ -75,29 +76,29 @@ class User(db.Model):
 class Url(db.Model):
     __tablename__ = "urls"
     id = db.Column(db.Integer, primary_key=True)
-    shorten_url = db.Column(db.String, index=True)
+    shorten_url_code = db.Column(db.String, index=True)
     origin_url = db.Column(db.String)
     userid = db.Column(db.Integer, db.ForeignKey("users.id"))
 
-time.sleep(1)
 
 try:
-    userquery = User.query.filter_by(username=DEFAULT_USER).first()
+    User.query.filter_by(username=DEFAULT_USER).first()
 except:
     if not database_exists(DB_URL):
         print("Creating database.")
         create_database(DB_URL)
+        time.sleep(1)
 
     print("Creating tables.")
     db.create_all()
-    time.sleep(2)
+    time.sleep(1)
 
-if User.query.filter_by(username=DEFAULT_USER).first() is None:
+userquery = User.query.filter_by(username=DEFAULT_USER).first()
+if userquery is None:
     user = User(username="gamehive")
     user.hash_password("gamehive")
     db.session.add(user)
     db.session.commit()
-
 
 ## Helper Functions
 
@@ -330,8 +331,8 @@ def get_urls():
     for data in query_res:
         data.pop("id", None)
         data.pop("userid", None)
-        data["shorten_url_code"] = data["shorten_url"]
-        data["shorten_url"] = request.url_root + data["shorten_url"]
+        data["shorten_url_code"] = data["shorten_url_code"]
+        data["shorten_url"] = request.url_root + data["shorten_url_code"]
 
     res = {
         "status": "success",
@@ -364,8 +365,8 @@ def url_shorten():
         - BasicAuth: []
 
     responses:
-      201:
-        description: Stored the URL pair in PostGresSQL database and Return Shorten URL
+      200:
+        description: Stored the URL pair in PostGresSQL database and Return Shorten URL Code
         schema:
             type: object
             properties:
@@ -374,25 +375,19 @@ def url_shorten():
                 example: 'success'
               username:
                 type: string
-                example: 'TestUser'
+                example: 'newuser'
               userid:
                 type: int
-                example: 1
-              url_pairs:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    origin_url:
-                        type: string
-                        example: 'https://www.youtube.com/watch?v=Rj_r07nf2d0'
-                    shorten_url:
-                        type: string
-                        example: 'http://localhost:5000/1Y9dAPj'
-                    shorten_url_code:
-                        type: string
-                        example: '1Y9dAPj'
-
+                example: 2
+              origin_url:
+                type: string
+                example: 'https://www.youtube.com/watch?v=Rj_r07nf2d0'
+              shorten_url_code:
+                type: string
+                example: '1Y9dAPj'
+              shorten_url:
+                type: string
+                example: 'http://localhost:5000/1Y9dAPj'
     """
     try:
         user = g.user
@@ -403,27 +398,31 @@ def url_shorten():
     origin_url = post_content.get("url")
 
     if validate_url(origin_url):
-        shorten_url = gen_short_id()
+        shorten_url_code = gen_short_id()
 
-        while Url.query.filter_by(shorten_url=shorten_url).first() is not None:
-            shorten_url = gen_short_id()
+        while Url.query.filter_by(shorten_url_code=shorten_url_code).first() is not None:
+            shorten_url_code = gen_short_id()
+
+        shorten_url = request.url_root + shorten_url_code
 
         if user:
             new_url_pair = Url(
-                origin_url=origin_url, shorten_url=shorten_url, userid=user.id
+                origin_url=origin_url, shorten_url_code=shorten_url_code, userid=user.id
             )
             res = {
                 "status": "success",
                 "origin_url": origin_url,
+                "shorten_url_code": shorten_url_code,
                 "shorten_url": shorten_url,
                 "userid": user.id,
                 "username": user.username,
             }
         else:
-            new_url_pair = Url(origin_url=origin_url, shorten_url=shorten_url)
+            new_url_pair = Url(origin_url=origin_url, shorten_url_code=shorten_url_code)
             res = {
                 "status": "success",
                 "origin_url": origin_url,
+                "shorten_url_code": shorten_url_code,
                 "shorten_url": shorten_url,
                 "userid": None,
                 "username": None,
@@ -468,7 +467,7 @@ def expand_url(shorten_url_code):
 
 
     """
-    query_res = Url.query.filter_by(shorten_url=shorten_url_code).first()
+    query_res = Url.query.filter_by(shorten_url_code=shorten_url_code).first()
 
     if query_res:
         query_res = query2json(query_res)
