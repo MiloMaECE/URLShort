@@ -128,7 +128,7 @@ def resetdb_command():
     db.create_all()
 
     user = User(username=DEFAULT_USER)
-    user.hash_password("gamehive")
+    user.hash_password(DEFAULT_PASSWORD)
     db.session.add(user)
     db.session.commit()
 

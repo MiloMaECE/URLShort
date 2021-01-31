@@ -1,7 +1,7 @@
-DEFAULT_USER = "gamehive"
-DEFAULT_PASSWORD = "gamehive"
+DEFAULT_USER = "testuser"
+DEFAULT_PASSWORD = "password"
 
-DB_URL = "postgresql://gamehive:gamehive@postgres:5432/gamehive1"
+DB_URL = "postgresql://testuser:password@postgres:5432/pgdb"
 PORT_NUMBER = 5000
 HOST = "0.0.0.0"
 DEBUG = True
@@ -16,7 +16,7 @@ Swagger_Template = {
     "swagger": "2.0",
     "info": {
         "title": "Short URL API Server",
-        "description": "RESTful API Server for Gamehive Interview",
+        "description": "RESTful API Server for UrlShort",
         "contact": {
             "responsibleDeveloper": "Yunlong Ma",
             "email": "yunlongma@gmail.com",
